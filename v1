@@ -1,0 +1,403 @@
+#include <avr/io.h>
+
+#define F_CPU 16000000ul
+#include <util/delay.h>
+#include "h_bridge.h"
+
+//leds
+#define LED_ROOD1 (1<<PA0) //22
+#define LED_ROOD2 (1<<PA1) //23
+#define LED_ROOD3 (1<<PA2) //24
+#define LED_ROOD4 (1<<PA3) //25
+#define LED_ROOD5 (1<<PA4) //26
+#define LED_ROOD6 (1<<PA5) //27
+#define LED_ROOD7 (1<<PA6) //28
+#define LED_ROOD8 (1<<PA7) //29
+#define LED_ROOD9 (1<<PC7) //30
+#define LED_ROOD10 (1<<PC6) //31
+
+#define LED_GEEL1 (1<<PC5) //32
+#define LED_GEEL2 (1<<PC4) //33
+#define LED_GEEL3 (1<<PC3) //34
+#define LED_GEEL4 (1<<PC2) //35
+
+#define LED_GROEN1 (1<<PC1) //36
+#define LED_GROEN2 (1<<PC0) //37
+#define LED_GROEN3 (1<<PD7) //38
+#define LED_GROEN4 (1<<PG2) //39
+#define LED_GROEN5 (1<<PG1) //40
+#define LED_GROEN6 (1<<PG0) //41
+#define LED_GROEN7 (1<<PL7) //42
+#define LED_GROEN8 (1<<PL6) //43
+#define LED_GROEN9 (1<<PL5) //44
+#define LED_GROEN10 (1<<PL4) //45
+
+#define LED_ORANJE1 (1<<PL3) //46
+#define LED_ORANJE2 (1<<PL2) //47
+
+//Knoppen
+#define knop1 (1<<PF0)//A0 //sensor
+#define Knop2 (1<<PF1) //A1
+#define Knop3 (1<<PF2)//A2
+#define Knop4 (1<<PF3)//A3
+#define Knop5  (1<<PF4)//A4
+#define Knop6 (1<<PF5)//A5
+#define Knop7 (1<<PF6)//A6
+
+
+int main(void)
+{
+init_servo();
+int i = 0;
+
+DDRA |= LED_ROOD1;
+DDRA |= LED_ROOD2;
+DDRA |= LED_ROOD3;
+DDRA |= LED_ROOD4;
+DDRA |= LED_ROOD5;
+DDRA |= LED_ROOD6;
+DDRA |= LED_ROOD7;
+DDRA |= LED_ROOD8;
+DDRC |= LED_ROOD9;
+DDRC |= LED_ROOD10;
+DDRC |= LED_GEEL1;
+DDRC |= LED_GEEL2;
+DDRC |= LED_GEEL3;
+DDRC |= LED_GEEL4;
+DDRC |= LED_GROEN1;
+DDRC |= LED_GROEN2;
+DDRD |= LED_GROEN3;
+DDRG |= LED_GROEN4;
+DDRG |= LED_GROEN5;
+DDRG |= LED_GROEN6;
+DDRL |= LED_GROEN7;
+DDRL |= LED_GROEN8;
+DDRL |= LED_GROEN9;
+DDRL |= LED_GROEN10;
+DDRL |= LED_ORANJE1;
+DDRL |= LED_ORANJE2;
+DDRF &= ~knop1; //sensor
+DDRF &= ~Knop2;
+DDRF &= ~Knop3;
+DDRF &= ~Knop4;
+DDRF &= ~Knop5;
+DDRF &= ~Knop6;
+DDRF &= ~Knop7;
+
+//brug
+DDRB |= (1 << DDB2);
+DDRB |= (1 << DDB0);
+//DDRF &= ~_BV(PK1);
+//DDRF &= ~_BV(PK0);
+//DDRF &= ~(1 << PK1); //A9
+//DDRF &= ~(1 << PK0); //A8
+
+while (1)
+{
+    //brug achterkant
+    //geen doorvarend verkeer
+    PORTA |= LED_ROOD1; //led achterkant links rood 1 aan
+    PORTA |= LED_ROOD2; //led achterkant links rood 2 aan
+    PORTA |= LED_ROOD3; //led achterkant rechts rood 3 aan
+    PORTA |= LED_ROOD4; //led achterkant rechts rood 4 aan
+    PORTC &= ~LED_GEEL1; //led achterkant op brug geel 1 uit
+    PORTC &= ~LED_GEEL2; //led achterkant op brug geel 2 uit     //standaard code
+    PORTC &= ~LED_GROEN1; //led achterkant links groen 1 uit
+    PORTC &= ~LED_GROEN2; //led achterkant links groen 2 uit
+    PORTD &= ~LED_GROEN3; //led achterkant rechts groen 3 uit
+    PORTG &= ~LED_GROEN4; //led achterkant rechts groen 4 uit
+
+    //brug voorkant
+    //kleine boot geen tegenliggers
+    PORTA |= LED_ROOD5; //led voorkant links rood 5 aan
+    PORTA |= LED_ROOD6; //led voorkant links rood 6 aan
+    PORTA |= LED_ROOD7; //led voorkant rechts rood 7 aan
+    PORTA |= LED_ROOD8; //led voorkant rechts rood 8 aan
+    PORTC |= LED_GEEL3; //led voorkant op brug geel 3 aan      //standaard code
+    PORTC |= LED_GEEL4; //led voorkant op brug geel 4 aan
+    PORTG &= ~LED_GROEN5; //led voorkant links groen 5 uit
+    PORTG &= ~LED_GROEN6; //led voorkant links groen 6 uit
+    PORTL &= ~LED_GROEN7; //led voorkant rechts groen 7 uit
+    PORTL &= ~LED_GROEN8; //led voorkant rechts groen 8 uit
+
+    // stoplicht fietsverkeer groen
+    PORTC &= ~LED_ROOD9; // stoplicht voorkant links rood 9 uit
+    PORTC &= ~LED_ROOD10; // stoplicht voorkant rechts rood 10 uit
+    PORTL &= ~LED_ORANJE1;
+    PORTL &= ~LED_ORANJE2;
+    PORTL |= LED_GROEN9; // stoplicht voorkant links groen 9 aan
+    PORTL |= LED_GROEN10; //stoplicht voorkant rechts groen 10 aan
+
+
+    //.begin
+    if (PINF & knop1) //sensor van boot!!!!!!!!!!!!!!!
+    {
+            PORTC &= ~LED_GEEL3; //led geel 3 boot uit
+            PORTC &= ~LED_GEEL4; //led geel 4 boot uit
+            PORTL &= ~LED_GROEN9;
+            PORTL &= ~LED_GROEN10;
+            PORTL |= LED_ORANJE1;
+            PORTL |= LED_ORANJE2;
+            _delay_ms(2000);
+            PORTL &= ~LED_ORANJE1;
+            PORTL &= ~LED_ORANJE2;
+            PORTC |= LED_ROOD9;
+            PORTC |= LED_ROOD10;
+            _delay_ms(2000);
+            servo1_set_percentage(100); // = PE3
+            servo2_set_percentage(100); // = PE5
+            _delay_ms(2000);
+
+            //brug open
+            for(int i=0;i<30;i++)
+            {
+                PORTB |= (1 << PB0);
+                _delay_ms(7);
+
+                PORTB &= ~(1 << PB0);
+                _delay_ms(40);
+            }
+
+            _delay_ms(2000);
+            PORTA &= ~LED_ROOD5; //led rood 5 uit
+            PORTA &= ~LED_ROOD6; //led rood 6 uit
+            PORTA &= ~LED_ROOD7; //led rood 7 uit
+            PORTA &= ~LED_ROOD8; //led rood 8 uit
+            PORTC &= ~LED_GEEL3; //led geel 3 uit
+            PORTC &= ~LED_GEEL4; //led geel 4 uit
+            PORTG |= LED_GROEN5; //led groen 5 aan
+            PORTG |= LED_GROEN6; //led groen 6 aan
+            PORTL |= LED_GROEN7; //led groen 7 aan
+            PORTL |= LED_GROEN8; //led groen 8 aan
+
+            while (i < 1)
+            {
+
+
+            if (PINF & Knop2)   //detecteer geen boot!!!!!!!!!!!!!!!!!!!!!!
+            {
+            //boot rood licht bijde kanten
+            _delay_ms(2000);
+            PORTA |= LED_ROOD5; //led rood 1 aan
+            PORTA |= LED_ROOD6; //led rood 2 aan
+            PORTA |= LED_ROOD7; //led rood 3 aan
+            PORTA |= LED_ROOD8; //led rood 4 aan
+            PORTC &= ~LED_GEEL3; //led geel 1 uit
+            PORTC &= ~LED_GEEL4; //led geel 2 uit
+            PORTG &= ~LED_GROEN5; //led groen 1 uit
+            PORTG &= ~LED_GROEN6; //led groen 2 uit
+            PORTL &= ~LED_GROEN7; //led groen 3 uit
+            PORTL &= ~LED_GROEN8; //led groen 4 uit
+
+            //brug dicht
+            for(int i=0;i<27;i++)
+            {
+                PORTB |= _BV(PORTB2);
+                _delay_ms(3);
+
+                PORTB &= ~ _BV(PORTB2);
+                _delay_ms(65);
+            }
+
+            _delay_ms(2000);
+            PORTC |= LED_GEEL3; //led geel 1 aan
+            PORTC |= LED_GEEL4; //led geel 2 aan
+            _delay_ms(2000);
+            servo1_set_percentage (-90); // = PE3
+            servo2_set_percentage (-90); // = PE 5
+            _delay_ms(2000);
+            i = 2;
+                }
+
+
+            }
+            i = 0;
+
+    }
+
+
+
+    if (PINF & Knop3)
+    {
+
+            PORTL &= ~LED_GROEN9;
+            PORTL &= ~LED_GROEN10;
+            PORTL |= LED_ORANJE1;       //stoplichten rood
+            PORTL |= LED_ORANJE2;       //2 seconden ingedrukt houden
+            _delay_ms(2000);
+
+            while (i < 1)
+            {
+
+            PORTL &= ~LED_ORANJE1;
+            PORTL &= ~LED_ORANJE2;
+            PORTC |= LED_ROOD9;
+            PORTC |= LED_ROOD10;
+            if (!(PINF & Knop3))
+            {
+                i = 2;
+                _delay_ms(500);
+            }
+
+            }
+            i = 0;
+    }
+
+    if (PINF & Knop4)
+    {
+        while (i < 1)
+
+        {//brug omhoog
+            for(int i=0;i<30;i++)
+            {
+                PORTB |= (1 << PB0);
+                _delay_ms(7);
+
+                PORTB &= ~(1 << PB0);
+                _delay_ms(40);
+            }
+
+        if (!(PINF & Knop3)) //knop los i s
+        {
+            //brug omlaag
+            for(int i=0;i<27;i++)
+            {
+                PORTB |= _BV(PORTB2);
+                _delay_ms(3);
+
+                PORTB &= ~ _BV(PORTB2);
+                _delay_ms(65);
+            }
+            i = 2;
+        }
+        }
+        int i = 0;
+    }
+
+    if (PINF & Knop4)
+    {
+        while (i < 1)
+        {
+        servo1_set_percentage(100);
+        servo2_set_percentage(100);
+        if (!(PINF & Knop4))
+            {//slagbomen omhoog knop los is slagbomen omlaag
+            servo1_set_percentage(-90);
+            servo2_set_percentage(-90);
+            i = 2;
+            _delay_ms(500);
+            }
+
+    }
+        i = 0;
+    }
+
+    if (PINF & Knop5)
+    {
+        while (i < 1)
+        {
+            //twee richtingsweg
+        PORTA |= LED_ROOD1; //led achterkant links rood 1 aan
+        PORTA |= LED_ROOD2; //led achterkant links rood 2 aan
+        PORTA |= LED_ROOD3; //led achterkant rechts rood 3 aan
+        PORTA |= LED_ROOD4; //led achterkant rechts rood 4 aan
+        PORTC |= LED_GEEL1; //led achterkant op brug geel 1 aan
+        PORTC &= ~LED_GEEL2; //led achterkant op brug geel 2 uit
+        PORTC &= ~LED_GROEN1; //led achterkant links groen 1 uit
+        PORTC &= ~LED_GROEN2; //led achterkant links groen 2 uit
+        PORTD &= ~LED_GROEN3; //led achterkant rechts groen 3 uit
+        PORTG &= ~LED_GROEN4; //led achterkant rechts groen 4 uit
+
+        //brug voorkant
+        PORTA |= LED_ROOD5; //led voorkant links rood 5 aan
+        PORTA |= LED_ROOD6; //led voorkant links rood 6 aan
+        PORTA |= LED_ROOD7; //led voorkant rechts rood 7 aan
+        PORTA |= LED_ROOD8; //led voorkant rechts rood 8 aan
+        PORTC |= LED_GEEL3; //led voorkant op brug geel 3 aan      //standaard code
+        PORTC &= ~LED_GEEL4; //led voorkant op brug geel 4 uit
+        PORTG &= ~LED_GROEN5; //led voorkant links groen 5 uit
+        PORTG &= ~LED_GROEN6; //led voorkant links groen 6 uit
+        PORTL &= ~LED_GROEN7; //led voorkant rechts groen 7 uit
+        PORTL &= ~LED_GROEN8; //led voorkant rechts groen 8 uit
+
+            if (!(PINF & Knop5)) //knop loslaten
+            {
+                i = 2;
+                _delay_ms(500);
+            }
+        }
+        i = 0;
+    }
+    if (PINF & Knop6)
+    {
+        while (i < 1) //geen vaarverkeer
+        {
+             PORTA |= LED_ROOD1; //led achterkant links rood 1 aan
+            PORTA |= LED_ROOD2; //led achterkant links rood 2 aan
+            PORTA |= LED_ROOD3; //led achterkant rechts rood 3 aan
+            PORTA |= LED_ROOD4; //led achterkant rechts rood 4 aan
+            PORTC &= ~LED_GEEL1; //led achterkant op brug geel 1 uit
+            PORTC &= ~LED_GEEL2; //led achterkant op brug geel 2 uit     //standaard code
+            PORTC &= ~LED_GROEN1; //led achterkant links groen 1 uit
+            PORTC &= ~LED_GROEN2; //led achterkant links groen 2 uit
+            PORTD &= ~LED_GROEN3; //led achterkant rechts groen 3 uit
+            PORTG &= ~LED_GROEN4; //led achterkant rechts groen 4 uit
+
+            //brug voorkant
+            PORTA |= LED_ROOD5; //led voorkant links rood 5 aan
+            PORTA |= LED_ROOD6; //led voorkant links rood 6 aan
+            PORTA |= LED_ROOD7; //led voorkant rechts rood 7 aan
+            PORTA |= LED_ROOD8; //led voorkant rechts rood 8 aan
+            PORTC &= ~LED_GEEL3; //led voorkant op brug geel 3 uit     //standaard code
+            PORTC &= ~LED_GEEL4; //led voorkant op brug geel 4 uit
+            PORTG &= ~LED_GROEN5; //led voorkant links groen 5 uit
+            PORTG &= ~LED_GROEN6; //led voorkant links groen 6 uit
+            PORTL &= ~LED_GROEN7; //led voorkant rechts groen 7 uit
+            PORTL &= ~LED_GROEN8; //led voorkant rechts groen 8 uit
+            if (!(PINF & Knop6))
+            {
+                i = 2;
+                _delay_ms(500);
+            }
+        }
+        i = 0;
+
+    }
+    if (PINF & Knop7)
+    {
+        //achterkant mag alleen varen
+        while (i < 1)
+        {
+    PORTA |= LED_ROOD1; //led achterkant links rood 1 aan
+    PORTA |= LED_ROOD2; //led achterkant links rood 2 aan
+    PORTA |= LED_ROOD3; //led achterkant rechts rood 3 aan
+    PORTA |= LED_ROOD4; //led achterkant rechts rood 4 aan
+    PORTC |= LED_GEEL1; //led achterkant op brug geel 1 aan
+    PORTC |= LED_GEEL2; //led achterkant op brug geel 2 aan     //standaard code
+    PORTC &= ~LED_GROEN1; //led achterkant links groen 1 uit
+    PORTC &= ~LED_GROEN2; //led achterkant links groen 2 uit
+    PORTD &= ~LED_GROEN3; //led achterkant rechts groen 3 uit
+    PORTG &= ~LED_GROEN4; //led achterkant rechts groen 4 uit
+
+    //brug voorkant
+    PORTA |= LED_ROOD5; //led voorkant links rood 5 aan
+    PORTA |= LED_ROOD6; //led voorkant links rood 6 aan
+    PORTA |= LED_ROOD7; //led voorkant rechts rood 7 aan
+    PORTA |= LED_ROOD8; //led voorkant rechts rood 8 aan
+    PORTC &= ~LED_GEEL3; //led voorkant op brug geel 3 uit      //standaard code
+    PORTC &= ~LED_GEEL4; //led voorkant op brug geel 4 uit
+    PORTG &= ~LED_GROEN5; //led voorkant links groen 5 uit
+    PORTG &= ~LED_GROEN6; //led voorkant links groen 6 uit
+    PORTL &= ~LED_GROEN7; //led voorkant rechts groen 7 uit
+    PORTL &= ~LED_GROEN8; //led voorkant rechts groen 8 uit
+        if (!(PINF & Knop7))
+        {
+            i = 2;
+            _delay_ms(500);
+        }
+        }
+        i = 0;
+    }
+}
+    return 0;
+}
